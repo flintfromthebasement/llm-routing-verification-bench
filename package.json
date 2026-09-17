@@ -1,0 +1,17 @@
+{
+  "name": "llm-routing-verification-bench",
+  "version": "1.0.0",
+  "description": "A portable benchmark for LLM tier routing, factual-claim verification, and interim-message generation.",
+  "type": "module",
+  "bin": {
+    "llm-rv-bench": "./bin/benchmark.mjs"
+  },
+  "scripts": {
+    "bench": "node bin/benchmark.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

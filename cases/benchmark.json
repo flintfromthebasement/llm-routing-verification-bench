@@ -1,0 +1,219 @@
+{
+  "name": "Portable routing and verification micro-benchmark",
+  "version": 1,
+  "cases": [
+    {
+      "id": "route-casual-game",
+      "family": "route",
+      "message": "heading out to the game tonight — hold down the fort",
+      "expected": { "tier": "base", "verify": false },
+      "note": "Casual conversation."
+    },
+    {
+      "id": "route-thanks",
+      "family": "route",
+      "message": "thanks for helping with that customer earlier, you saved me an hour",
+      "expected": { "tier": "base", "verify": false },
+      "note": "Acknowledgement with no factual answer required."
+    },
+    {
+      "id": "route-event-lookup",
+      "family": "route",
+      "message": "is there an event that fires when a subscription expires? I need the exact event name for an integration recipe",
+      "expected": { "tier": "mid", "verify": true },
+      "note": "Single factual lookup whose exact answer must be checked."
+    },
+    {
+      "id": "route-deprecated-component",
+      "family": "route",
+      "message": "a customer wants to collect a phone number during signup — should I point them at the old Form Extras extension?",
+      "expected": { "tier": "mid", "verify": true },
+      "note": "Routine product guidance with a deprecation trap."
+    },
+    {
+      "id": "route-document-link",
+      "family": "route",
+      "message": "do we have a documentation page on configuring payment webhooks that I can send to a customer?",
+      "expected": { "tier": "mid", "verify": true },
+      "note": "Single-source lookup with a link that must be verified."
+    },
+    {
+      "id": "route-issue-summary",
+      "family": "route",
+      "message": "can you give me a quick summary of this issue? https://support.example.test/issues/map-markers-not-rendering",
+      "expected": { "tier": "mid", "verify": true },
+      "note": "Fetch and summarize one source."
+    },
+    {
+      "id": "route-sales-reply",
+      "family": "route",
+      "message": "Please draft a reply to this sales question and include useful links: Can Northstar create free customer accounts and sync them to Letterbird, then upgrade them later?",
+      "expected": { "tier": "mid", "verify": true },
+      "note": "Writing task containing product-capability claims and requested links."
+    },
+    {
+      "id": "route-marketing-reply",
+      "family": "route",
+      "message": "Write a friendly reply to people who answered our final reminder email. Acknowledge their feedback, say we are fixing the rough edges first, and do not discuss pricing yet.",
+      "expected": { "tier": "mid", "verify": false },
+      "note": "Pure copywriting with constraints."
+    },
+    {
+      "id": "route-inactive-price",
+      "family": "route",
+      "message": "A customer sees this error while checking out with a coupon: Could not create checkout session. The selected price is inactive. What could be wrong?",
+      "expected": { "tier": "top", "verify": true },
+      "note": "Technical diagnosis; intentionally near the mid/top boundary."
+    },
+    {
+      "id": "route-collation-risk",
+      "family": "route",
+      "message": "What are the risks of changing all application tables to utf8mb4_unicode_ci, and would that actually prevent the invalid-string errors from returning?",
+      "expected": { "tier": "top", "verify": true },
+      "note": "Multi-part migration risk and recurrence analysis."
+    },
+    {
+      "id": "route-fee-investigation",
+      "family": "route",
+      "message": "A customer thinks their payment-processing fees increased after our latest release. Could anything in our code or pricing explain that? I need evidence and talking points for a reply.",
+      "expected": { "tier": "top", "verify": true },
+      "note": "Cross-source investigation plus customer-facing synthesis."
+    },
+    {
+      "id": "route-analytics-synthesis",
+      "family": "route",
+      "message": "Pull the last 30 days of web analytics, compare our biggest organic landing pages with the previous 30 days, inspect a few pages that are slipping, and give me four high-level search recommendations.",
+      "expected": { "tier": "top", "verify": true },
+      "note": "Multi-step retrieval, comparison, inspection, and synthesis."
+    },
+    {
+      "id": "route-explicit-tier",
+      "family": "route",
+      "message": "Use the top tier for this one. Trace the two-hop SSH tunnel, audit the editor upload configuration, and explain why connections fail only when the bastion rotates keys.",
+      "expected": { "tier": "top", "verify": true },
+      "note": "Explicit tier request plus complex configuration analysis."
+    },
+    {
+      "id": "route-code-vs-guide",
+      "family": "route",
+      "message": "I know what the migration guide recommends. Inspect the email-provider adapter source and tell me whether the code actually behaves the way the guide claims.",
+      "expected": { "tier": "top", "verify": true },
+      "note": "Reconcile source code against documentation."
+    },
+    {
+      "id": "route-ambiguous-backend-triage",
+      "family": "route",
+      "message": "Based on their latest feedback, I am looking at the backend. What should I analyze, and what are the possible responses?",
+      "expected": { "tier": "top", "verify": true },
+      "note": "Ambiguous, open-ended diagnosis and response planning."
+    },
+    {
+      "id": "verify-fabricated-links",
+      "family": "verify",
+      "userText": "Where is the documentation for coupon codes?",
+      "conversation": "USER: Where is the documentation for coupon codes?",
+      "toolSummary": "search_docs: found https://docs.northstar.test/coupons/",
+      "draft": "The complete guide is at https://docs.northstar.test/guides/coupon-codes-v2/ and the advanced stacking guide is at https://docs.northstar.test/extensions/coupon-stacking/. Both are current as of version 4.2.",
+      "expected": { "needs_regen": true },
+      "requiredFindings": [
+        ["coupon-codes-v2"],
+        ["coupon-stacking"],
+        ["4.2"]
+      ],
+      "note": "Two fabricated links and one unsupported version claim."
+    },
+    {
+      "id": "verify-grounded-event",
+      "family": "verify",
+      "userText": "Is there an event that fires when a subscription expires?",
+      "conversation": "USER: Is there an event that fires when a subscription expires?",
+      "toolSummary": "search_api_docs: subscription.expired fires after expiration is recorded. Callback receives the subscription object.",
+      "draft": "Yes. Use subscription.expired; it runs after expiration is recorded and passes the subscription object to the callback.",
+      "expected": { "needs_regen": false },
+      "requiredFindings": [],
+      "note": "Every claim is grounded in tool evidence."
+    },
+    {
+      "id": "verify-deprecated-component",
+      "family": "verify",
+      "userText": "Should I use Form Extras to collect a phone number during signup?",
+      "conversation": "USER: Should I use Form Extras to collect a phone number during signup?",
+      "toolSummary": "search_docs: Form Extras is deprecated. Built-in Profile Fields replaces it.",
+      "draft": "Form Extras is still the recommended extension for signup phone fields. Install it, then add the field under Settings → Form Extras.",
+      "expected": { "needs_regen": true },
+      "requiredFindings": [
+        ["deprecated", "profile fields"],
+        ["settings", "form extras"]
+      ],
+      "note": "Recommendation contradicts evidence and invents a configuration path."
+    },
+    {
+      "id": "verify-hedged-analysis",
+      "family": "verify",
+      "userText": "Could changing the collation fix these invalid-string errors?",
+      "conversation": "USER: Could changing the collation fix these invalid-string errors?",
+      "toolSummary": "(no tools were used this turn)",
+      "draft": "It could help if incompatible table collations are the cause, but that is only one possibility. I would inspect the affected columns and incoming character data before treating it as the fix.",
+      "expected": { "needs_regen": false },
+      "requiredFindings": [],
+      "note": "Appropriately hedged analysis should pass."
+    },
+    {
+      "id": "verify-payment-overclaim",
+      "family": "verify",
+      "userText": "Checkout says the selected price is inactive. What could be wrong?",
+      "conversation": "USER: Checkout says the selected price is inactive. What could be wrong?",
+      "toolSummary": "(no tools were used this turn)",
+      "draft": "This is definitely a core bug in build_checkout_price() at line 918; it never checks price.active. Tell the customer to delete the inactive price and we will ship the fix in 4.2.1 tomorrow. The coupon system always archives old prices automatically.",
+      "expected": { "needs_regen": true },
+      "requiredFindings": [
+        ["build_checkout_price", "line 918"],
+        ["delete", "inactive price"],
+        ["4.2.1", "tomorrow"],
+        ["always archives"]
+      ],
+      "note": "Specific code, remediation, release, and behavior claims lack evidence."
+    },
+    {
+      "id": "interim-deprecated-component",
+      "family": "interim",
+      "userText": "How do I configure fields in Form Extras?",
+      "issues": [
+        { "severity": "block", "description": "Form Extras is deprecated", "fix_hint": "Point to built-in Profile Fields" },
+        { "severity": "warn", "description": "The version is unsourced" }
+      ],
+      "expected": {
+        "requiredAny": [["deprecated"], ["profile fields"]],
+        "forbidden": ["reviewer", "validator", "draft", "internal process"]
+      },
+      "note": "Share the useful correction without exposing internal review."
+    },
+    {
+      "id": "interim-fabricated-links",
+      "family": "interim",
+      "userText": "Where is the documentation for coupon codes?",
+      "issues": [
+        { "severity": "block", "description": "The draft used a documentation URL that is not in evidence", "fix_hint": "Use only the URL returned by documentation search" },
+        { "severity": "block", "description": "The draft invented a coupon-stacking extension URL", "fix_hint": "Drop the unsourced extension link" }
+      ],
+      "expected": {
+        "requiredAny": [["document", "link", "url"]],
+        "forbidden": ["http://", "https://", "reviewer", "validator", "draft", "internal process"]
+      },
+      "note": "Promise to check the link without inventing one."
+    },
+    {
+      "id": "interim-process-id",
+      "family": "interim",
+      "userText": "Restart the worker on demo.example.test",
+      "issues": [
+        { "severity": "block", "description": "The previous response included an unverified process ID", "fix_hint": "Drop process-ID claims" }
+      ],
+      "expected": {
+        "requiredAny": [["double-check", "check", "confirm", "right approach", "correct approach"]],
+        "forbidden": ["pid", "process id", "reviewer", "validator", "draft", "previous response", "internal process"]
+      },
+      "note": "Natural hold-on message without surfacing an unseen process ID."
+    }
+  ]
+}
