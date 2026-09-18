@@ -3,9 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { performance } from "node:perf_hooks";
-import { buildMessages } from "../lib/prompts.mjs";
+import { buildDecisionRequest, buildMessages } from "../lib/prompts.mjs";
 import { scoreCase } from "../lib/scoring.mjs";
-import { callModel } from "../lib/client.mjs";
+import { callDecisions, callModel, isDecisionsModel } from "../lib/client.mjs";
 import { summarize, writeReports } from "../lib/report.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -27,7 +27,7 @@ Options:
   --input-price N        Optional input price per million tokens.
   --output-price N       Optional output price per million tokens.
   --out PATH             Output JSON path (HTML uses the same basename).
-  --no-stream            Disable streaming; TTFT will be unavailable.
+  --no-stream            Disable chat streaming; TTFT will be unavailable. Decisions never stream.
   --validate-only        Validate the dataset without API calls.
   --help                 Show this help.
 
@@ -120,17 +120,13 @@ async function main() {
     }))).sort((left, right) => ((left.caseIndex * 7 + left.modelIndex + repeat) % 13) - ((right.caseIndex * 7 + right.modelIndex + repeat) % 13));
     const started = performance.now();
     const rows = await pool(jobs, args.concurrency, async (job) => {
-      const request = buildMessages(job.testCase);
-      const response = await callModel({
-        baseUrl: args.baseUrl,
-        apiKey,
-        model: job.model,
-        ...request,
-        stream: args.stream,
-        inputPrice: args.inputPrice,
-        outputPrice: args.outputPrice,
-        timeoutMs: args.timeoutMs,
-      });
+      if (isDecisionsModel(job.model) && job.family === "interim") {
+        return { ...job, testCase: undefined, skipped: true, skipReason: "Typed Decisions models do not generate interim prose.", adapter: "decisions" };
+      }
+      const common = { apiKey, model: job.model, inputPrice: args.inputPrice, outputPrice: args.outputPrice, timeoutMs: args.timeoutMs };
+      const response = isDecisionsModel(job.model)
+        ? await callDecisions({ ...common, decisionRequest: buildDecisionRequest(job.testCase, benchmark.cases) })
+        : await callModel({ ...common, baseUrl: args.baseUrl, ...buildMessages(job.testCase), stream: args.stream });
       return { ...job, testCase: undefined, ...response, score: scoreCase(job.testCase, response.response) };
     });
     runs.push(...rows);
@@ -147,6 +143,7 @@ async function main() {
     repeats: args.repeats,
     concurrency: args.concurrency,
     stream: args.stream,
+    transports: Object.fromEntries(args.models.map((model) => [model, isDecisionsModel(model) ? "decisions" : "chat-completions"])),
     cases: benchmark.cases,
     summaries,
     runs,

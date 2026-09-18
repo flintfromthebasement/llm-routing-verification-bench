@@ -28,6 +28,8 @@ The message must:
 - include required grounded information;
 - avoid case-specific forbidden terms, invented references, and internal-review language.
 
+Typed Decisions models such as Jev do not generate prose. Interim cases are ineligible for those models, are recorded as skipped, and do not count as failures or enter their eligible denominator.
+
 ## Detail score
 
 The detail score is diagnostic and should not replace the headline score:
@@ -44,6 +46,8 @@ The detail score is diagnostic and should not replace the headline score:
 - **Sequential equivalent:** sum of individual call latencies for the first repeat. This is useful for comparing with a serial production path even when the benchmark itself runs concurrently.
 
 Short structured outputs make tokens/second noisy. Prefer median latency and TTFT when evaluating classifier responsiveness.
+
+OpenRouter Decisions is non-streaming, so TTFT and output throughput are unavailable for Jev. Use end-to-end latency for that adapter. Summary denominators are eligible calls per model and family; configured and skipped counts remain visible.
 
 ## Comparison discipline
 

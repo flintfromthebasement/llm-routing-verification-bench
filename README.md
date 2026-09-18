@@ -11,7 +11,7 @@ The suite contains 23 fictional, domain-neutral cases: 15 routing cases, 5 verif
 ## Requirements
 
 - Node.js 20 or newer
-- An OpenAI-compatible `/chat/completions` endpoint
+- An OpenAI-compatible `/chat/completions` endpoint, or OpenRouter Decisions for Jev
 - An API key for that endpoint
 
 No `npm install` is required.
@@ -34,10 +34,22 @@ Any OpenAI-compatible provider:
 export BENCH_API_KEY="your-key"
 node bin/benchmark.mjs \
   --base-url https://api.example.test/v1 \
-  --model jev-model-id
+  --model provider/model-id
 ```
 
 The command writes both raw JSON and a standalone HTML report under `results/`.
+
+OpenRouter Jev automatically uses the non-streaming Decisions endpoint:
+
+```bash
+export OPENROUTER_API_KEY="your-key"
+node bin/benchmark.mjs \
+  --model typesafe/jev-1.13 \
+  --repeats 3 \
+  --concurrency 8
+```
+
+`~typesafe/jev-latest` is also recognized automatically. Jev receives structured state plus typed `Choice` and `Noul` questions, and its answers are converted to the same routing/verifier JSON consumed by the existing scorer. Verifier drafts are split into neutral sentence-level claim candidates; expected findings are used only by the scorer, never in Jev's request. The three interim-message cases require prose generation, so they are explicitly reported as skipped and excluded from Jev's eligible totals.
 
 ## Comparing models
 
@@ -93,9 +105,11 @@ Run `node bin/benchmark.mjs --help` for every option.
 - Exact regenerate/no-regenerate decision for draft verification
 - Finding-level recall for known defects in verifier cases
 - Constraint adherence for interim messages
-- End-to-end latency, time to first token, p95 latency, and output tokens/second
+- End-to-end latency, plus time to first token and output tokens/second where streaming prose is available
 - Input/output tokens and cost when the provider exposes them
 - Repeat-to-repeat consistency
+
+Decisions calls are always non-streaming. Their latency, usage, cost, provider, and request ID are retained; TTFT and throughput are unavailable and appear as `—`. Reports show configured, eligible, and skipped totals per model, including per-family eligible totals.
 
 See [RUBRIC.md](RUBRIC.md) for interpretation and known judgment calls.
 
