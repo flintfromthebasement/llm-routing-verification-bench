@@ -51,6 +51,8 @@ node bin/benchmark.mjs \
 
 `~typesafe/jev-latest` is also recognized automatically. Jev receives structured state plus typed `Choice` and `Noul` questions, and its answers are converted to the same routing/verifier JSON consumed by the existing scorer. Verifier drafts are split into neutral sentence-level claim candidates; expected findings are used only by the scorer, never in Jev's request. The three interim-message cases require prose generation, so they are explicitly reported as skipped and excluded from Jev's eligible totals.
 
+Respan `respan/span-01` and `respan/span-01-lite` also use Decisions. Respan only accepts string state and yes/no (`Noul`) questions, so the runner sends the same state as a JSON string and splits the tier `Choice` into one `Noul` per tier, picking the highest probability.
+
 ## Comparing models
 
 Repeat `--model` to run models through the same interleaved batches:

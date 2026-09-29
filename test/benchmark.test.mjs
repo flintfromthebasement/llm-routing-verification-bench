@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildDecisionRequest, buildMessages, extractClaimCandidates } from "../lib/prompts.mjs";
 import { scoreCase } from "../lib/scoring.mjs";
-import { callDecisions, isDecisionsModel } from "../lib/client.mjs";
+import { callDecisions, fromRespanAnswers, isDecisionsModel, toRespanRequest } from "../lib/client.mjs";
 import { renderHtml, summarize } from "../lib/report.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -169,4 +169,23 @@ test("public files contain no private fixture markers", () => {
     const content = fs.readFileSync(path.join(root, file), "utf8");
     for (const pattern of forbidden) assert.doesNotMatch(content, pattern, `${file} contains ${pattern}`);
   }
+});
+
+test("Respan Span models use Decisions with noul-only questions and string state", () => {
+  assert.equal(isDecisionsModel("respan/span-01"), true);
+  assert.equal(isDecisionsModel("respan/span-01-lite"), true);
+  const routeCase = benchmark.cases.find((item) => item.family === "route");
+  const request = buildDecisionRequest(routeCase, benchmark.cases);
+  const respan = toRespanRequest(request);
+  assert.equal(typeof respan.state, "string");
+  assert.deepEqual(Object.keys(respan.questions).sort(), ["tier__base", "tier__mid", "tier__top", "verify"]);
+  assert.ok(Object.values(respan.questions).every((question) => question.type === "noul"));
+  const answers = fromRespanAnswers(request, {
+    tier__base: { type: "noul", noul: 0.1 },
+    tier__mid: { type: "noul", noul: 0.7 },
+    tier__top: { type: "noul", noul: 0.3 },
+    verify: { type: "noul", noul: 0.8 },
+  });
+  assert.equal(answers.tier.choice, "mid");
+  assert.equal(answers.verify.noul, 0.8);
 });
