@@ -53,6 +53,8 @@ node bin/benchmark.mjs \
 
 Respan `respan/span-01` and `respan/span-01-lite` also use Decisions. Respan only accepts string state and yes/no (`Noul`) questions, so the runner sends the same state as a JSON string and splits the tier `Choice` into one `Noul` per tier, picking the highest probability.
 
+Other structured-state Decisions models work with the same adapter as Jev: `openai/gpt-6-luna-decisions` (and its dated snapshots) and `microsoft/microsoft-decision-1`. They accept the structured `state` plus typed `Choice`/`Noul` questions and return probabilities through the same endpoint.
+
 ## Comparing models
 
 Repeat `--model` to run models through the same interleaved batches:

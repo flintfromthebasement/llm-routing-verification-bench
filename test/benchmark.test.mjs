@@ -32,6 +32,11 @@ test("Jev model aliases select Decisions while normal models remain chat models"
   assert.equal(isDecisionsModel("typesafe/jev-1.13"), true);
   assert.equal(isDecisionsModel("~typesafe/jev-latest"), true);
   assert.equal(isDecisionsModel("typesafe/not-jev"), false);
+  assert.equal(isDecisionsModel("openai/gpt-6-luna-decisions"), true);
+  assert.equal(isDecisionsModel("openai/gpt-6-luna-decisions-20261006"), true);
+  assert.equal(isDecisionsModel("openai/gpt-6-luna"), false);
+  assert.equal(isDecisionsModel("microsoft/microsoft-decision-1"), true);
+  assert.equal(isDecisionsModel("microsoft/microsoft-decision-1-20261009"), true);
   assert.equal(isDecisionsModel("provider/model-id"), false);
 });
 
