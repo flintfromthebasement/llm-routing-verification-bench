@@ -37,6 +37,9 @@ test("Jev model aliases select Decisions while normal models remain chat models"
   assert.equal(isDecisionsModel("openai/gpt-6-luna"), false);
   assert.equal(isDecisionsModel("microsoft/microsoft-decision-1"), true);
   assert.equal(isDecisionsModel("microsoft/microsoft-decision-1-20261009"), true);
+  assert.equal(isDecisionsModel("perplexity/pplx-decider-v1.2"), true);
+  assert.equal(isDecisionsModel("perplexity/pplx-decider-flash-v1.2-20261016"), true);
+  assert.equal(isDecisionsModel("perplexity/sonar"), false);
   assert.equal(isDecisionsModel("provider/model-id"), false);
 });
 
