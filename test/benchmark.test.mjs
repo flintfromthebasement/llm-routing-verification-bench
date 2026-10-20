@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildDecisionRequest, buildMessages, extractClaimCandidates } from "../lib/prompts.mjs";
 import { scoreCase } from "../lib/scoring.mjs";
-import { callDecisions, fromRespanAnswers, isDecisionsModel, toRespanRequest } from "../lib/client.mjs";
+import { callDecisions, clefEndpoint, fromRespanAnswers, isClefModel, isDecisionsModel, toRespanRequest } from "../lib/client.mjs";
 import { renderHtml, summarize } from "../lib/report.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -41,6 +41,57 @@ test("Jev model aliases select Decisions while normal models remain chat models"
   assert.equal(isDecisionsModel("perplexity/pplx-decider-flash-v1.2-20261016"), true);
   assert.equal(isDecisionsModel("perplexity/sonar"), false);
   assert.equal(isDecisionsModel("provider/model-id"), false);
+});
+
+test("Cloudflare Clef models select Decisions and resolve to Workers AI or a local server", () => {
+  assert.equal(isClefModel("cloudflare/clef"), true);
+  assert.equal(isClefModel("cloudflare/clef-flash"), true);
+  assert.equal(isClefModel("@cf/cloudflare/clef-omni"), true);
+  assert.equal(isClefModel("cloudflare/clairic"), false);
+  assert.equal(isDecisionsModel("cloudflare/clef-flash"), true);
+  assert.equal(clefEndpoint("cloudflare/clef-flash", { CF_ACCOUNT_ID: "acct" }), "https://api.cloudflare.com/client/v4/accounts/acct/ai/run/@cf/cloudflare/clef-flash");
+  assert.equal(clefEndpoint("cloudflare/clef", { CLEF_BASE_URL: "http://127.0.0.1:30000/v1/systemone" }), "http://127.0.0.1:30000/v1/systemone");
+  assert.throws(() => clefEndpoint("cloudflare/clef", {}), /CLEF_BASE_URL/);
+});
+
+test("Clef adapter sends the short model name and unwraps the Workers AI envelope", async (context) => {
+  const originalFetch = globalThis.fetch;
+  const originalAccount = process.env.CF_ACCOUNT_ID;
+  const originalBase = process.env.CLEF_BASE_URL;
+  process.env.CF_ACCOUNT_ID = "acct";
+  delete process.env.CLEF_BASE_URL;
+  context.after(() => {
+    globalThis.fetch = originalFetch;
+    if (originalAccount === undefined) delete process.env.CF_ACCOUNT_ID; else process.env.CF_ACCOUNT_ID = originalAccount;
+    if (originalBase !== undefined) process.env.CLEF_BASE_URL = originalBase;
+  });
+  const testCase = benchmark.cases.find((item) => item.family === "route");
+  const decisionRequest = buildDecisionRequest(testCase, benchmark.cases);
+  let captured;
+  globalThis.fetch = async (url, options) => {
+    captured = { url, body: JSON.parse(options.body), auth: options.headers.Authorization };
+    return new Response(JSON.stringify({
+      success: true,
+      errors: [],
+      result: {
+        model: "clef-flash",
+        answers: {
+          tier: { type: "choice", choice: testCase.expected.tier, confidence: 0.8, probabilities: { base: 0.1, mid: 0.1, top: 0.8 } },
+          verify: { type: "noul", noul: testCase.expected.verify ? 0.9 : 0.1 },
+        },
+        usage: { input_tokens: 321, output_tokens: 0 },
+      },
+    }), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+  const result = await callDecisions({ apiKey: "cf-key", model: "cloudflare/clef-flash", decisionRequest, inputPrice: 0.038, outputPrice: 0 });
+  assert.equal(captured.url, "https://api.cloudflare.com/client/v4/accounts/acct/ai/run/@cf/cloudflare/clef-flash");
+  assert.equal(captured.body.model, "clef-flash");
+  assert.equal(captured.auth, "Bearer cf-key");
+  assert.equal(result.adapter, "decisions");
+  assert.equal(result.provider, "Cloudflare Workers AI");
+  assert.equal(result.inputTokens, 321);
+  assert.ok(Math.abs(result.cost - 321 * 0.038 / 1_000_000) < 1e-12);
+  assert.equal(scoreCase(testCase, result.response).match, true);
 });
 
 test("route Decisions request uses structured state, Choice, Noul, and representative examples", () => {

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { performance } from "node:perf_hooks";
 import { buildDecisionRequest, buildMessages } from "../lib/prompts.mjs";
 import { scoreCase } from "../lib/scoring.mjs";
-import { callDecisions, callModel, isDecisionsModel } from "../lib/client.mjs";
+import { callDecisions, callModel, isClefModel, isDecisionsModel } from "../lib/client.mjs";
 import { summarize, writeReports } from "../lib/report.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,6 +33,10 @@ Options:
 
 Environment shortcuts:
   BENCH_MODEL, BENCH_BASE_URL, BENCH_API_KEY, OPENROUTER_API_KEY
+
+Cloudflare Clef (cloudflare/clef, cloudflare/clef-flash, cloudflare/clef-omni):
+  Hosted: CF_ACCOUNT_ID plus a Workers AI key in --api-key-env.
+  Local:  CLEF_BASE_URL=http://127.0.0.1:30000/v1/systemone (no key needed).
 `);
 }
 
@@ -111,7 +115,8 @@ async function main() {
   if (!Number.isInteger(args.repeats) || args.repeats < 1) throw new Error("--repeats must be a positive integer.");
   if (!Number.isInteger(args.concurrency) || args.concurrency < 1) throw new Error("--concurrency must be a positive integer.");
   const apiKey = process.env[args.apiKeyEnv] || (args.apiKeyEnv === "BENCH_API_KEY" ? process.env.OPENROUTER_API_KEY : "");
-  if (!apiKey) throw new Error(`Set ${args.apiKeyEnv} before running the benchmark.`);
+  const localClefOnly = Boolean(process.env.CLEF_BASE_URL) && args.models.every((model) => isClefModel(model));
+  if (!apiKey && !localClefOnly) throw new Error(`Set ${args.apiKeyEnv} before running the benchmark.`);
 
   const runs = [];
   for (let repeat = 1; repeat <= args.repeats; repeat++) {
