@@ -55,6 +55,8 @@ Respan `respan/span-01` and `respan/span-01-lite` also use Decisions. Respan onl
 
 Other structured-state Decisions models work with the same adapter as Jev: `openai/gpt-6-luna-decisions` (and its dated snapshots), `microsoft/microsoft-decision-1`, and Perplexity's `perplexity/pplx-decider-v1.2` / `perplexity/pplx-decider-flash-v1.2`. They accept the structured `state` plus typed `Choice`/`Noul` questions and return probabilities through the same endpoint.
 
+Google `gemini-decision-1` (or `google/gemini-decision-1`) calls Google's own Gemini Decisions API (`POST /v1beta/decisions`) instead of OpenRouter, using `GEMINI_API_KEY` or `GOOGLE_AI_API_KEY`. The runner sends the structured state as the JSON `input` string and maps `Noul` criteria to `true_description`/`false_description`.
+
 ## Comparing models
 
 Repeat `--model` to run models through the same interleaved batches:

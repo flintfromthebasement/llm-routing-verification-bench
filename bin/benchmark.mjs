@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { performance } from "node:perf_hooks";
 import { buildDecisionRequest, buildMessages } from "../lib/prompts.mjs";
 import { scoreCase } from "../lib/scoring.mjs";
-import { callDecisions, callModel, isClefModel, isDecisionsModel } from "../lib/client.mjs";
+import { callDecisions, callModel, geminiApiKey, isClefModel, isDecisionsModel, isGeminiDecisionModel } from "../lib/client.mjs";
 import { summarize, writeReports } from "../lib/report.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -116,7 +116,8 @@ async function main() {
   if (!Number.isInteger(args.concurrency) || args.concurrency < 1) throw new Error("--concurrency must be a positive integer.");
   const apiKey = process.env[args.apiKeyEnv] || (args.apiKeyEnv === "BENCH_API_KEY" ? process.env.OPENROUTER_API_KEY : "");
   const localClefOnly = Boolean(process.env.CLEF_BASE_URL) && args.models.every((model) => isClefModel(model));
-  if (!apiKey && !localClefOnly) throw new Error(`Set ${args.apiKeyEnv} before running the benchmark.`);
+  const geminiOnly = Boolean(geminiApiKey()) && args.models.every((model) => isGeminiDecisionModel(model));
+  if (!apiKey && !localClefOnly && !geminiOnly) throw new Error(`Set ${args.apiKeyEnv} before running the benchmark.`);
 
   const runs = [];
   for (let repeat = 1; repeat <= args.repeats; repeat++) {

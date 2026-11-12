@@ -248,3 +248,19 @@ test("Respan Span models use Decisions with noul-only questions and string state
   assert.equal(answers.tier.choice, "mid");
   assert.equal(answers.verify.noul, 0.8);
 });
+
+test("Gemini Decision models call Google's decisions endpoint with input + true/false_description", async () => {
+  const { isGeminiDecisionModel, toGeminiRequest } = await import("../lib/client.mjs");
+  assert.equal(isGeminiDecisionModel("gemini-decision-1"), true);
+  assert.equal(isGeminiDecisionModel("google/gemini-decision-1"), true);
+  assert.equal(isGeminiDecisionModel("google/gemini-3.8-flash"), false);
+  assert.equal(isDecisionsModel("google/gemini-decision-1"), true);
+  const body = toGeminiRequest("google/gemini-decision-1", {
+    state: { a: 1 },
+    questions: { verify: { type: "noul", instructions: "q", criteria: { true: "yes", false: "no" } }, tier: { type: "choice", instructions: "t", criteria: { base: "b" } } },
+  });
+  assert.equal(body.model, "gemini-decision-1");
+  assert.equal(typeof body.input, "string");
+  assert.deepEqual(body.questions.verify.criteria, { true_description: "yes", false_description: "no" });
+  assert.deepEqual(body.questions.tier.criteria, { base: "b" });
+});
